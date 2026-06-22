@@ -90,7 +90,7 @@ export default function Home() {
             transition={{ duration: 0.6, delay: 0.4 }}
             className="flex flex-col sm:flex-row items-center justify-center gap-3 mb-12"
           >
-            <Link to="/onboarding" className="btn-lime flex items-center gap-2 group">
+            <Link to="/discovery" className="btn-lime flex items-center gap-2 group">
               Get Your Levav ID™
               <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </Link>

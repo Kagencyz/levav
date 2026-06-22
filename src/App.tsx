@@ -58,6 +58,7 @@ import LeaderboardPage from "./pages/LeaderboardPage";
 import ChampionsPage from "./pages/ChampionsPage";
 import ChampionOnboardingPage from "./pages/ChampionOnboardingPage";
 import CreatorOnboardingPage from "./pages/CreatorOnboardingPage";
+import DiscoveryJourney from "./pages/DiscoveryJourney";
 import Levav28Page from "./pages/Levav28Page";
 
 // ErrorBoundary wrappers
@@ -100,6 +101,7 @@ const SafeChampions = withErrorBoundary(ChampionsPage, "Levav Champions™");
 const SafeLeaderboard = withErrorBoundary(LeaderboardPage, "Leaderboard");
 const SafeChampionApply = withErrorBoundary(ChampionOnboardingPage, "Champion Application");
 const SafeCreatorApply = withErrorBoundary(CreatorOnboardingPage, "Creator Application");
+const SafeDiscovery = withErrorBoundary(DiscoveryJourney, "Discovery Journey");
 const SafeCrucible = withErrorBoundary(Levav28Page, "Levav 28™ Crucible");
 
 export default function App() {
@@ -120,6 +122,7 @@ export default function App() {
           <Route path="/champions" element={<SafeChampions />} />
           <Route path="/champions/apply" element={<SafeChampionApply />} />
           <Route path="/creators/apply" element={<SafeCreatorApply />} />
+          <Route path="/discovery" element={<SafeDiscovery />} />
 
           {/* === FOUR PATHWAYS (Blueprint Part V) === */}
           <Route path="/learn" element={<RouteGuard><SafeLearn /></RouteGuard>} />
