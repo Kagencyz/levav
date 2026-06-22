@@ -1,0 +1,12 @@
+# ============================================================
+# STATIC HOSTING REDIRECTS — SPA FALLBACK
+# ============================================================
+# Place this file in your 'public/' directory (or build output root).
+# It gets copied to the deployment root during build.
+#
+# Supported by: Netlify, Cloudflare Pages, some Vercel configs
+# If your platform doesn't support _redirects, use HashRouter instead.
+# ============================================================
+
+# All routes fallback to index.html (SPA routing)
+/*    /index.html   200

@@ -1,0 +1,280 @@
+/**
+ * ============================================================
+ * CROSS-ECOSYSTEM TRIGGER DISPATCHER
+ * ============================================================
+ * Integration hub that fires automated triggers between portals:
+ *
+ *   Trigger A (Job Broadcast):     Posting a job → filters active talent pool
+ *   Trigger B (Service Validation): Volunteer hours validated → recalculates WRI
+ *   Trigger C (Shift Complete):     QuickWork shift rated → recalculates WRI
+ *   Trigger D (Course Complete):    Course finished → recalculates WRI
+ *   Trigger E (Profile Update):     Portfolio changes → recalculates WRI
+ *
+ * All triggers are async and non-blocking. They log outcomes for debugging.
+ * ============================================================
+ */
+
+import { recalculateWri } from "./wri-calculator";
+import { findProfileById, listAvailableProfiles } from "../queries/levav-profiles";
+import { findJobPostingById } from "../queries/employers";
+import { createNotification } from "../queries/notifications";
+import type { WriRecalculationResult } from "./wri-calculator";
+
+/**
+ * Resolve a profileId to a userId for notification routing.
+ */
+async function resolveUserId(profileId: number): Promise<number | null> {
+  const profile = await findProfileById(profileId);
+  return profile?.userId ?? null;
+}
+
+/* ─── TRIGGER RESULT TYPE ─── */
+
+export interface TriggerResult {
+  triggerType: string;
+  success: boolean;
+  profileId?: number;
+  wriResult?: WriRecalculationResult;
+  notificationIds?: number[];
+  matchedProfileIds?: number[];
+  error?: string;
+}
+
+/* ─── TRIGGER B: VOLUNTEER VALIDATION → WRI RECALCULATION ─── */
+
+/**
+ * Trigger B: When a coordinator validates volunteer hours,
+ * recalculate the volunteer's WRI Impact Score.
+ */
+export async function triggerVolunteerValidation(
+  _ledgerEntryId: number,
+  profileId: number,
+  hoursLogged: number,
+): Promise<TriggerResult> {
+  const notificationIds: number[] = [];
+
+  try {
+    // 1. Resolve profile to user ID
+    const userId = await resolveUserId(profileId);
+    if (!userId) throw new Error(`Could not resolve userId for profile ${profileId}`);
+
+    // 2. Recalculate WRI for the volunteer
+    const wriResult = await recalculateWri(profileId);
+
+    // 3. Notify the volunteer of WRI update
+    const notifId = await createNotification({
+      recipientId: userId,
+      type: "volunteer_validation",
+      title: "Volunteer Hours Validated",
+      message: `${hoursLogged} volunteer hours have been validated by your coordinator. Your Impact Score has been updated.`,
+      priority: "normal",
+    });
+    if (notifId) notificationIds.push(notifId);
+
+    // 4. If WRI score changed, send special notification
+    if (wriResult.previousScore !== wriResult.newScore) {
+      const tierNotifId = await createNotification({
+        recipientId: userId,
+        type: "wri_update",
+        title: "Workforce Readiness Index Updated",
+        message: `Your WRI score has been recalculated. New score: ${wriResult.newScore} (${wriResult.goldKeyTier.toUpperCase()} tier).`,
+        priority: "high",
+      });
+      if (tierNotifId) notificationIds.push(tierNotifId);
+    }
+
+    return {
+      triggerType: "B: VOLUNTEER_VALIDATION",
+      success: true,
+      profileId,
+      wriResult,
+      notificationIds,
+    };
+  } catch (error) {
+    if (!env.isProduction) console.error(`[Trigger B] Failed for profile ${profileId}:`, error);
+    return {
+      triggerType: "B: VOLUNTEER_VALIDATION",
+      success: false,
+      profileId,
+      error: error instanceof Error ? error.message : "Unknown error",
+    };
+  }
+}
+
+/* ─── TRIGGER C: QUICKWORK SHIFT RATING → WRI RECALCULATION ─── */
+
+/**
+ * Trigger C: When a QuickWork shift receives a rating,
+ * recalculate the talent's WRI (Reliability & Communication).
+ */
+export async function triggerQuickworkRating(
+  profileId: number,
+  _shiftId: number,
+  rating: number,
+): Promise<TriggerResult> {
+  try {
+    const userId = await resolveUserId(profileId);
+    if (!userId) throw new Error(`Could not resolve userId for profile ${profileId}`);
+
+    const wriResult = await recalculateWri(profileId);
+
+    // Notify talent
+    const notifId = await createNotification({
+      recipientId: userId,
+      type: "shift_match",
+      title: "Shift Rating Received",
+      message: `You received a ${rating}/5 rating for your completed shift. Your WRI has been updated.`,
+      priority: "normal",
+    });
+
+    return {
+      triggerType: "C: QUICKWORK_RATING",
+      success: true,
+      profileId,
+      wriResult,
+      notificationIds: notifId ? [notifId] : [],
+    };
+  } catch (error) {
+    if (!env.isProduction) console.error(`[Trigger C] Failed for profile ${profileId}:`, error);
+    return {
+      triggerType: "C: QUICKWORK_RATING",
+      success: false,
+      profileId,
+      error: error instanceof Error ? error.message : "Unknown error",
+    };
+  }
+}
+
+/* ─── TRIGGER D: COURSE COMPLETION → WRI RECALCULATION ─── */
+
+/**
+ * Trigger D: When a talent completes a course,
+ * recalculate their WRI (Learning & Culture).
+ */
+export async function triggerCourseCompletion(
+  profileId: number,
+  _courseId: number,
+  courseTitle: string,
+): Promise<TriggerResult> {
+  try {
+    const userId = await resolveUserId(profileId);
+    if (!userId) throw new Error(`Could not resolve userId for profile ${profileId}`);
+
+    const wriResult = await recalculateWri(profileId);
+
+    const notifId = await createNotification({
+      recipientId: userId,
+      type: "course_update",
+      title: "Course Completed",
+      message: `Congratulations! You completed "${courseTitle}". Your Learning Score has been updated.`,
+      priority: "normal",
+    });
+
+    return {
+      triggerType: "D: COURSE_COMPLETION",
+      success: true,
+      profileId,
+      wriResult,
+      notificationIds: notifId ? [notifId] : [],
+    };
+  } catch (error) {
+    if (!env.isProduction) console.error(`[Trigger D] Failed for profile ${profileId}:`, error);
+    return {
+      triggerType: "D: COURSE_COMPLETION",
+      success: false,
+      profileId,
+      error: error instanceof Error ? error.message : "Unknown error",
+    };
+  }
+}
+
+/* ─── TRIGGER A: JOB BROADCAST → TALENT POOL FILTER ─── */
+
+/**
+ * Trigger A: When an employer publishes a job posting,
+ * find matching talent in the active pool.
+ */
+export async function triggerJobBroadcast(
+  jobPostingId: number,
+  _employerId: number,
+): Promise<TriggerResult> {
+  try {
+    const job = await findJobPostingById(jobPostingId);
+    if (!job) {
+      return { triggerType: "A: JOB_BROADCAST", success: false, error: "Job not found" };
+    }
+
+    // Build filter criteria from job posting
+    const filters: {
+      city?: string;
+      minWriScore?: number;
+      availability?: string;
+      limit: number;
+    } = {
+      availability: "available",
+      limit: 50,
+    };
+
+    if (job.city) filters.city = job.city;
+    if (job.minWriScore) filters.minWriScore = Number(job.minWriScore);
+
+    // Query matching talent pool
+    const matchedProfiles = await listAvailableProfiles(filters);
+    const matchedProfileIds = matchedProfiles.map((p) => p.id);
+
+    // Send notifications to top 10 matches
+    const notificationIds: number[] = [];
+    for (const profile of matchedProfiles.slice(0, 10)) {
+      const userId = profile.userId;
+      const notifId = await createNotification({
+        recipientId: userId,
+        type: "job_application_update",
+        title: "New Job Match",
+        message: `A new ${job.jobType} position for "${job.title}" has been posted in ${job.city ?? "your area"}. Your profile matches the requirements.`,
+        priority: "normal",
+      });
+      if (notifId) notificationIds.push(notifId);
+    }
+
+    return {
+      triggerType: "A: JOB_BROADCAST",
+      success: true,
+      matchedProfileIds,
+      notificationIds,
+    };
+  } catch (error) {
+    if (!env.isProduction) console.error(`[Trigger A] Failed for job ${jobPostingId}:`, error);
+    return {
+      triggerType: "A: JOB_BROADCAST",
+      success: false,
+      error: error instanceof Error ? error.message : "Unknown error",
+    };
+  }
+}
+
+/* ─── TRIGGER E: PROFILE UPDATE → WRI RECALCULATION ─── */
+
+/**
+ * Trigger E: When a profile is significantly updated,
+ * trigger a full WRI recalculation.
+ */
+export async function triggerProfileUpdate(profileId: number): Promise<TriggerResult> {
+  try {
+    const wriResult = await recalculateWri(profileId);
+
+    return {
+      triggerType: "E: PROFILE_UPDATE",
+      success: true,
+      profileId,
+      wriResult,
+    };
+  } catch (error) {
+    if (!env.isProduction) console.error(`[Trigger E] Failed for profile ${profileId}:`, error);
+    return {
+      triggerType: "E: PROFILE_UPDATE",
+      success: false,
+      profileId,
+      error: error instanceof Error ? error.message : "Unknown error",
+    };
+  }
+}

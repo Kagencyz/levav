@@ -1,0 +1,306 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ============================================================
+   LEVAV TALENT AFRIKA — GLOBAL NEON GLASS THEME
+   ============================================================
+   Absolute midnight canvas with neon lime/violet accents.
+   Mobile-first, power-efficient OLED black backgrounds.
+   ============================================================ */
+
+@layer base {
+  :root {
+    /* Midnight Canvas (Levav Black Override) */
+    --background: 0 0% 0%;
+    --foreground: 0 0% 100%;
+
+    /* Glass Surface */
+    --card: 220 30% 4%;
+    --card-foreground: 0 0% 100%;
+    --popover: 220 30% 4%;
+    --popover-foreground: 0 0% 100%;
+
+    /* Neon Lime Primary */
+    --primary: 82 100% 60%;
+    --primary-foreground: 0 0% 0%;
+
+    /* Deep Surface */
+    --secondary: 220 20% 8%;
+    --secondary-foreground: 0 0% 100%;
+
+    /* Muted for hierarchy */
+    --muted: 220 15% 12%;
+    --muted-foreground: 220 10% 55%;
+
+    /* Violet Accent */
+    --accent: 262 82% 58%;
+    --accent-foreground: 0 0% 100%;
+
+    /* Destructive */
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+
+    /* Razor-thin borders */
+    --border: 0 0% 100% / 0.05;
+    --input: 0 0% 100% / 0.08;
+    --ring: 82 100% 60%;
+
+    --radius: 0.75rem;
+
+    /* Sidebar */
+    --sidebar-background: 220 30% 3%;
+    --sidebar-foreground: 0 0% 90%;
+    --sidebar-primary: 82 100% 60%;
+    --sidebar-primary-foreground: 0 0% 0%;
+    --sidebar-accent: 220 20% 10%;
+    --sidebar-accent-foreground: 0 0% 90%;
+    --sidebar-border: 0 0% 100% / 0.05;
+    --sidebar-ring: 82 100% 60%;
+
+    /* Levav Brand Tokens */
+    --levav-black: #000000;
+    --levav-lime: #C6FF34;
+    --levav-violet: #7E3BED;
+    --levav-white: #FFFFFF;
+    --levav-glass: #070a13;
+  }
+
+  /* Force dark mode globally — no light mode for Levav */
+  .dark {
+    --background: 0 0% 0%;
+    --foreground: 0 0% 100%;
+    --card: 220 30% 4%;
+    --card-foreground: 0 0% 100%;
+    --popover: 220 30% 4%;
+    --popover-foreground: 0 0% 100%;
+    --primary: 82 100% 60%;
+    --primary-foreground: 0 0% 0%;
+    --secondary: 220 20% 8%;
+    --secondary-foreground: 0 0% 100%;
+    --muted: 220 15% 12%;
+    --muted-foreground: 220 10% 55%;
+    --accent: 262 82% 58%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 100% / 0.05;
+    --input: 0 0% 100% / 0.08;
+    --ring: 82 100% 60%;
+    --sidebar-background: 220 30% 3%;
+    --sidebar-foreground: 0 0% 90%;
+    --sidebar-primary: 82 100% 60%;
+    --sidebar-primary-foreground: 0 0% 0%;
+    --sidebar-accent: 220 20% 10%;
+    --sidebar-accent-foreground: 0 0% 90%;
+    --sidebar-border: 0 0% 100% / 0.05;
+    --sidebar-ring: 82 100% 60%;
+  }
+
+  * {
+    @apply border-white/5;
+  }
+
+  body {
+    @apply bg-black text-white antialiased;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overscroll-behavior-y: none;
+    /* Prevent pull-to-refresh on mobile */
+    touch-action: manipulation;
+  }
+
+  /* Scrollbar styling */
+  ::-webkit-scrollbar {
+    width: 4px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 999px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(198, 255, 52, 0.4);
+  }
+
+  /* Selection color */
+  ::selection {
+    background: rgba(198, 255, 52, 0.3);
+    color: #FFFFFF;
+  }
+}
+
+@layer components {
+  /* ─── The Frosted Liquid-Glass Card ─── */
+  .glass-card {
+    @apply bg-[#070a13]/40 backdrop-blur-xl border border-white/5 rounded-xl;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
+  }
+
+  .glass-card-strong {
+    @apply bg-[#070a13]/60 backdrop-blur-2xl border border-white/10 rounded-xl;
+    box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.6), inset 0 1px 0 0 rgba(255, 255, 255, 0.05);
+  }
+
+  /* ─── Glass Input Field ─── */
+  .glass-input {
+    @apply bg-[#070a13]/60 backdrop-blur-md border border-white/10 rounded-lg px-4 py-3 text-white placeholder:text-white/30 focus:border-[#C6FF34]/50 focus:ring-1 focus:ring-[#C6FF34]/30 focus:outline-none transition-all duration-300;
+  }
+
+  /* ─── Levav Input (used across all forms & search bars) ─── */
+  .input-levav {
+    @apply bg-[#070a13]/80 border border-white/10 rounded-lg px-4 py-2.5 text-white text-sm placeholder:text-white/30 focus:border-[#C6FF34]/40 focus:ring-1 focus:ring-[#C6FF34]/20 focus:outline-none focus:bg-[#070a13] transition-all duration-200;
+  }
+  .input-levav::placeholder {
+    @apply text-white/25;
+  }
+
+  /* Select dropdowns — force dark options */
+  .input-levav option,
+  .input-levav optgroup,
+  .glass-input option,
+  .glass-input optgroup {
+    @apply bg-[#070a13] text-white;
+  }
+
+  /* Date/time pickers — force dark calendar icon */
+  .input-levav[type="date"]::-webkit-calendar-picker-indicator,
+  .input-levav[type="time"]::-webkit-calendar-picker-indicator {
+    filter: invert(1) opacity(0.5);
+    cursor: pointer;
+  }
+  .input-levav[type="date"]::-webkit-calendar-picker-indicator:hover,
+  .input-levav[type="time"]::-webkit-calendar-picker-indicator:hover {
+    filter: invert(1) opacity(0.8);
+  }
+
+  /* ─── Neon Lime Button ─── */
+  .btn-lime {
+    @apply bg-[#C6FF34] text-black font-semibold px-6 py-3 rounded-lg transition-all duration-300;
+    box-shadow: 0 0 20px rgba(198, 255, 52, 0.2);
+  }
+  .btn-lime:hover {
+    box-shadow: 0 0 30px rgba(198, 255, 52, 0.4);
+    @apply scale-[1.02];
+  }
+  .btn-lime:active {
+    @apply scale-[0.98];
+  }
+
+  /* ─── Ghost Button (outline) ─── */
+  .btn-ghost {
+    @apply border border-white/20 text-white px-6 py-3 rounded-lg transition-all duration-300 hover:border-[#C6FF34]/50 hover:text-[#C6FF34];
+  }
+
+  /* ─── Violet Glow Background Layer ─── */
+  .violet-glow {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    overflow: hidden;
+  }
+  .violet-glow::before {
+    content: '';
+    position: absolute;
+    top: -20%;
+    left: -10%;
+    width: 60%;
+    height: 60%;
+    background: radial-gradient(ellipse, rgba(126, 59, 237, 0.15) 0%, transparent 70%);
+    animation: violet-pulse 6s ease-in-out infinite;
+  }
+  .violet-glow::after {
+    content: '';
+    position: absolute;
+    bottom: -20%;
+    right: -10%;
+    width: 50%;
+    height: 50%;
+    background: radial-gradient(ellipse, rgba(126, 59, 237, 0.1) 0%, transparent 60%);
+    animation: violet-pulse 8s ease-in-out infinite reverse;
+  }
+
+  /* ─── Section Container (mobile-first padding) ─── */
+  .levav-container {
+    @apply w-full px-4 sm:px-6 lg:px-8 xl:px-12 mx-auto max-w-7xl;
+  }
+
+  /* ─── Mobile Safe Area Padding ─── */
+  .safe-area-bottom {
+    padding-bottom: env(safe-area-inset-bottom, 16px);
+  }
+  .safe-area-top {
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+
+  /* ─── Typography Scale ─── */
+  .text-hero {
+    @apply text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-white;
+  }
+  .text-section {
+    @apply text-xl sm:text-2xl font-semibold text-white;
+  }
+  .text-body {
+    @apply text-sm sm:text-base text-white/70 leading-relaxed;
+  }
+  .text-caption {
+    @apply text-xs text-white/50 tracking-wide uppercase;
+  }
+
+  /* ─── Status Badges ─── */
+  .badge-lime {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#C6FF34]/20 text-[#C6FF34] border border-[#C6FF34]/30;
+  }
+  .badge-violet {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#7E3BED]/20 text-[#7E3BED] border border-[#7E3BED]/30;
+  }
+  .badge-white {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-white/10 text-white/80 border border-white/10;
+  }
+
+  /* ─── Divider ─── */
+  .divider-glow {
+    @apply h-px w-full;
+    background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.1) 50%, transparent 100%);
+  }
+
+  /* ─── Gold Key Tier Colors ─── */
+  .tier-bronze { color: #CD7F32; }
+  .tier-silver { color: #C0C0C0; }
+  .tier-gold { color: #FFD700; }
+  .tier-platinum { color: #E5E4E2; }
+  .tier-diamond { color: #B9F2FF; }
+}
+
+@layer utilities {
+  /* Prevent text selection on interactive elements */
+  .no-select {
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  /* Hardware acceleration for smooth animations */
+  .gpu-layer {
+    transform: translateZ(0);
+    will-change: transform;
+  }
+
+  /* Text gradient utility */
+  .text-gradient-lime {
+    background: linear-gradient(135deg, #C6FF34 0%, #9FE630 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* Subtle shimmer for loading states */
+  .shimmer-bg {
+    background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.03) 50%, transparent 100%);
+    background-size: 200% 100%;
+    animation: shimmer 2s linear infinite;
+  }
+}

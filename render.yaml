@@ -1,0 +1,26 @@
+# Levav Talent Afrika — Render Deployment Config
+# Deploy this to Render.com for free backend hosting
+
+services:
+  - type: web
+    name: levav-api
+    runtime: node
+    plan: free
+    buildCommand: npm ci && npm run build
+    startCommand: node dist/boot.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: APP_ID
+        sync: false  # Set in Render dashboard
+      - key: APP_SECRET
+        sync: false  # Set in Render dashboard
+      - key: DATABASE_URL
+        sync: false  # Set in Render dashboard
+      - key: KIMI_AUTH_URL
+        sync: false  # Set in Render dashboard
+      - key: KIMI_OPEN_URL
+        sync: false  # Set in Render dashboard
+      - key: OWNER_UNION_ID
+        sync: false  # Optional: set in Render dashboard
+    healthCheckPath: /api/health
